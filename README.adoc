@@ -1,0 +1,12 @@
+== 🪡 needle
+
+a swift url shortener
+
+=== 📑 instructions
+[source,sh]
+----
+cargo run
+----
+
+=== 🗒️ notes
+i am not quite good at rust.
