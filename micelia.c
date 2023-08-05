@@ -5,8 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-
-#define MAX_STR_LEN 24
+#include <unistd.h>
 #define MAX_INT_LEN 8
 
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
@@ -17,15 +16,29 @@
   }
 
 typedef struct t_node {
-  char *file_path;
-  struct t_node *next;
+    char *file_path;
+    struct t_node *next;
 } t_node;
 
 typedef struct t_files_stats {
-  int code_lines;
-  int blank_lines;
-  int comment_lines;
+    int code_lines;
+    int blank_lines;
+    int comment_lines;
 } t_files_stats;
+
+// LETRAD ADDITION
+int max_str_len(t_node *files) {
+    int max_str_len = 0;
+    t_node *current = files;
+    while (current != NULL) {
+        int len = strlen(current->file_path);
+        if (len > max_str_len) {
+            max_str_len = len;
+        }
+        current = current->next;
+    }
+    return max_str_len + 4; // Adding 4 for padding
+}
 
 t_node *create_node(const char *file_path) {
   t_node *new_node = (t_node *)malloc(sizeof(t_node));
@@ -78,45 +91,59 @@ static const char *inline_comments[] = {"//", ";;", "#"};
 // TODO: add a CLI option to ignore folders.
 static const char *ignore_folders[] = {".git", ".vscode", "node_modules"};
 
+// LETRAD ADDITION
+static const char *ignore_list[1024];
+static int ignore_count = 0;
+
+// LETRAD MODIFIED
 int readdir_recursive(const char *path) {
-  DIR *folder;
-  struct dirent *entry;
-  char full_path[PATH_MAX];
+    DIR *folder;
+    struct dirent *entry;
+    char full_path[PATH_MAX];
 
-  folder = opendir(path);
-  if (!folder)
-    return EXIT_FAILURE;
+    folder = opendir(path);
+    if (!folder)
+        return EXIT_FAILURE;
 
-  while ((entry = readdir(folder)) != NULL) {
-    if (STREQ(entry->d_name, ".") || STREQ(entry->d_name, ".."))
-      continue;
+    while ((entry = readdir(folder)) != NULL) {
+        if (STREQ(entry->d_name, ".") || STREQ(entry->d_name, ".."))
+            continue;
 
-    bool should_ignore = false;
-    for (size_t i = 0; i < sizeof(ignore_folders) / sizeof(ignore_folders[0]);
-         i++) {
-      if (STREQ(entry->d_name, ignore_folders[i])) {
-        should_ignore = true;
-        break;
-      }
+        bool should_ignore = false;
+        for (size_t i = 0; i < sizeof(ignore_folders) / sizeof(ignore_folders[0]); i++) {
+            if (STREQ(entry->d_name, ignore_folders[i])) {
+                should_ignore = true;
+                break;
+            }
+        }
+
+        // Check against user-added ignore list
+        for (int i = 0; i < ignore_count; i++) {
+            if (STREQ(entry->d_name, ignore_list[i])) {
+                should_ignore = true;
+                break;
+            }
+        }
+
+        if (should_ignore)
+            continue;
+
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
+
+        if (entry->d_type == DT_REG) {
+            char *relative_path = (char *)malloc(strlen(full_path) + 1);
+            sprintf(relative_path, "%s", full_path + strlen(base_path) + 1);
+
+            insert_node(&files, create_node(relative_path));
+            free(relative_path);
+        } else if (entry->d_type == DT_DIR)
+            readdir_recursive(full_path);
     }
-    if (should_ignore)
-      continue;
 
-    snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
-
-    if (entry->d_type == DT_REG) {
-      char *relative_path = (char *)malloc(strlen(full_path) + 1);
-      sprintf(relative_path, "%s", full_path + strlen(base_path) + 1);
-
-      insert_node(&files, create_node(relative_path));
-      free(relative_path);
-    } else if (entry->d_type == DT_DIR)
-      readdir_recursive(full_path);
-  }
-
-  closedir(folder);
-  return EXIT_SUCCESS;
+    closedir(folder);
+    return EXIT_SUCCESS;
 }
+
 
 // TODO: implement some sort of parser for comments,
 //       or look at how other people do it.
@@ -168,8 +195,8 @@ void count_file(const char *path) {
 
   free(line);
   fclose(file);
-
-  printf("%-*.*s | %*d | %*d | %*d\n", MAX_STR_LEN, MAX_STR_LEN, path,
+  int str_len = max_str_len(files);
+  printf("%-*.*s | %*d | %*d | %*d\n", str_len, str_len, path,
          MAX_INT_LEN, code_lines, MAX_INT_LEN, comment_lines, MAX_INT_LEN,
          blank_lines);
 
@@ -179,48 +206,60 @@ void count_file(const char *path) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2)
+    int opt;
+    while ((opt = getopt(argc, argv, "i:")) != -1) {
+        switch (opt) {
+            case 'i':
+                if (ignore_count >= sizeof(ignore_list) / sizeof(ignore_list[0])) {
+                    UNRECOVERABLE("Too many ignore options.\n");
+                }
+                ignore_list[ignore_count++] = optarg;
+                break;
+            default:
+            UNRECOVERABLE("Invalid option.\n");
+        }
+    }
+
+    if (optind >= argc)
     UNRECOVERABLE("no path provided.\n");
 
-  base_path = argv[1];
-  size_t path_len = strlen(base_path);
+    base_path = argv[optind];
+    size_t path_len = strlen(base_path);
 
-  if (path_len > 0 && base_path[path_len - 1] == '/')
-    base_path[path_len - 1] = '\0';
+    if (path_len > 0 && base_path[path_len - 1] == '/')
+        base_path[path_len - 1] = '\0';
 
-  // TODO: mime-type based ignore or even just a simple
-  //			 extension list based one
-  int res = readdir_recursive(base_path);
-  stats = create_stats();
+    int res = readdir_recursive(base_path);
+    stats = create_stats();
 
-  // TODO: find a way to DRY this, whilst being generic.
-  printf("%-*.*s | %*.*s | %*.*s | %*.*s\n", MAX_STR_LEN, MAX_STR_LEN, "file",
-         MAX_INT_LEN, MAX_INT_LEN, "code", MAX_INT_LEN, MAX_INT_LEN, "comment",
-         MAX_INT_LEN, MAX_INT_LEN, "blank");
+    int str_len = max_str_len(files);
+    printf("%-*.*s | %*.*s | %*.*s | %*.*s\n", str_len, str_len, "file",
+           MAX_INT_LEN, MAX_INT_LEN, "code", MAX_INT_LEN, MAX_INT_LEN, "comment",
+           MAX_INT_LEN, MAX_INT_LEN, "blank");
 
-  if (res == EXIT_SUCCESS) {
-    char *file_path;
+    if (res == EXIT_SUCCESS) {
+        char *file_path;
 
-    t_node *current = files;
-    while (current != NULL) {
-      file_path =
-          (char *)malloc(strlen(base_path) + strlen(current->file_path) + 2);
-      sprintf(file_path, "%s/%s", base_path, current->file_path);
+        t_node *current = files;
+        while (current != NULL) {
+            file_path =
+                    (char *)malloc(strlen(base_path) + strlen(current->file_path) + 2);
+            sprintf(file_path, "%s/%s", base_path, current->file_path);
 
-      count_file(file_path);
-      current = current->next;
+            count_file(file_path);
+            current = current->next;
 
-      free(file_path);
-    }
-  } else
-    count_file(base_path);
+            free(file_path);
+        }
+    } else
+        count_file(base_path);
 
-  printf("%-*.*s | %*d | %*d | %*d\n", MAX_STR_LEN, MAX_STR_LEN, "total",
-         MAX_INT_LEN, stats->code_lines, MAX_INT_LEN, stats->comment_lines,
-         MAX_INT_LEN, stats->blank_lines);
+    printf("%-*.*s | %*d | %*d | %*d\n", str_len, str_len, "total",
+           MAX_INT_LEN, stats->code_lines, MAX_INT_LEN, stats->comment_lines,
+           MAX_INT_LEN, stats->blank_lines);
 
-  free_list(files);
-  free_stats(stats);
+    free_list(files);
+    free_stats(stats);
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
