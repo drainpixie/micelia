@@ -1,12 +1,11 @@
-== 🪡 needle
+== 🍄 micelia
 
-a swift url shortener
+a naive SLOC counter
 
 === 📑 instructions
 [source,sh]
 ----
-cargo run
+sudo make install clean
 ----
 
-=== 🗒️ notes
-i am not quite good at rust.
+
