@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <dirent.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -22,6 +23,7 @@ typedef struct t_node {
 
 typedef struct t_files_stats {
   int code_lines;
+  int blank_lines;
   int comment_lines;
 } t_files_stats;
 
@@ -38,6 +40,7 @@ t_files_stats *create_stats() {
   t_files_stats *stats = (t_files_stats *)malloc(sizeof(t_files_stats));
 
   stats->code_lines = 0;
+  stats->blank_lines = 0;
   stats->comment_lines = 0;
 
   return stats;
@@ -130,6 +133,16 @@ bool is_comment(const char *line) {
   return false;
 }
 
+bool is_empty(const char *line) {
+  while (*line) {
+    if (!isspace(*line))
+      return false;
+    line++;
+  }
+
+  return true;
+}
+
 void count_file(const char *path) {
   char *line = NULL;
 
@@ -140,24 +153,28 @@ void count_file(const char *path) {
   if (!file)
     UNRECOVERABLE("not a file.\n");
 
-  int comment_lines = 0;
   int code_lines = 0;
+  int blank_lines = 0;
+  int comment_lines = 0;
 
   while ((read = getline(&line, &len, file)) != -1) {
-    // TODO: ignore blank lines
     if (is_comment(line))
       comment_lines++;
-    else
+    else if (!is_empty(line))
       code_lines++;
+    else
+      blank_lines++;
   }
 
   free(line);
   fclose(file);
 
-  printf("%-*.*s | %*d | %*d\n", MAX_STR_LEN, MAX_STR_LEN, path, MAX_INT_LEN,
-         code_lines, MAX_INT_LEN, comment_lines);
+  printf("%-*.*s | %*d | %*d | %*d\n", MAX_STR_LEN, MAX_STR_LEN, path,
+         MAX_INT_LEN, code_lines, MAX_INT_LEN, comment_lines, MAX_INT_LEN,
+         blank_lines);
 
   stats->code_lines += code_lines;
+  stats->blank_lines += blank_lines;
   stats->comment_lines += comment_lines;
 }
 
@@ -177,9 +194,9 @@ int main(int argc, char *argv[]) {
   stats = create_stats();
 
   // TODO: find a way to DRY this, whilst being generic.
-  printf("%-*.*s | %*.*s | %*.*s\n", MAX_STR_LEN, MAX_STR_LEN, "file",
-         MAX_INT_LEN, MAX_INT_LEN, "code", MAX_INT_LEN, MAX_INT_LEN,
-         "comments");
+  printf("%-*.*s | %*.*s | %*.*s | %*.*s\n", MAX_STR_LEN, MAX_STR_LEN, "file",
+         MAX_INT_LEN, MAX_INT_LEN, "code", MAX_INT_LEN, MAX_INT_LEN, "comment",
+         MAX_INT_LEN, MAX_INT_LEN, "blank");
 
   if (res == EXIT_SUCCESS) {
     char *file_path;
@@ -198,8 +215,9 @@ int main(int argc, char *argv[]) {
   } else
     count_file(base_path);
 
-  printf("%-*.*s | %*d | %*d\n", MAX_STR_LEN, MAX_STR_LEN, "total", MAX_INT_LEN,
-         stats->code_lines, MAX_INT_LEN, stats->comment_lines);
+  printf("%-*.*s | %*d | %*d | %*d\n", MAX_STR_LEN, MAX_STR_LEN, "total",
+         MAX_INT_LEN, stats->code_lines, MAX_INT_LEN, stats->comment_lines,
+         MAX_INT_LEN, stats->blank_lines);
 
   free_list(files);
   free_stats(stats);
