@@ -191,12 +191,13 @@ int main(int argc, char *argv[]) {
 
     count_file(file_path);
     current = current->next;
+
+		free(file_path);
   }
 
   printf("%-*.*s | %*d | %*d\n", MAX_STR_LEN, MAX_STR_LEN, "total", MAX_INT_LEN,
          stats->code_lines, MAX_INT_LEN, stats->comment_lines);
 
-  free(file_path);
 
   free_list(files);
   free_stats(stats);
