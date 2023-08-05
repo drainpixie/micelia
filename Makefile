@@ -1,5 +1,5 @@
-CC 		:= clang
-CFLAGS	:= -std=c99 -Wall -Wextra -g
+CC 			:= clang
+CFLAGS	:= -std=c99 -fsanitize=address -Wall -Wextra -g
 CFLAGS	+= 
 
 SRCS	:= $(wildcard *.c)
