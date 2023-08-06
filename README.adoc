@@ -1,46 +1,55 @@
 == 🍄 micelia
 
-A naive SLOC (source lines of code) counter.
+a naive SLOC (source lines of code) counter.
 
-=== 📑 Instructions
+=== 📑 instructions
 
-==== Installation
+==== installation
 
 [source,sh]
 ----
 sudo make install
 ----
-==== Uninstallation
+==== uninstallation
 [source,sh]
 ----
 sudo make clean
 ----
 
-==== Usage
+==== usage
 
 [source,sh]
 ----
 micelia [OPTIONS] PATH
 ----
 
-===== Options
+===== options
 
-- `-i` or `--ignore`:: Ignore specified directories. You can add multiple directories to ignore by using this option multiple times.
+- `-i` or `--ignore`:: ignore specified directories. you can add multiple directories to ignore by using this option multiple times.
 
-===== Examples
+===== examples
 
-- Count lines of code in a directory, excluding the "test" and "vendor" folders:
+- count lines of code in a directory, excluding the "test" and "vendor" folders:
 
   micelia -i test -i vendor /path/to/directory
 
-- Count lines of code in a directory without ignoring any folders:
+- count lines of code in a directory without ignoring any folders:
 
   micelia /path/to/directory
 
-=== ⚠️ Note
+=== ⭐ contributors
+a heartfelt thank you goes out to all those who have contributed to 🍄 micelia. whether you've helped with code, documentation, design, or anything in between, your contributions are valued and appreciated.
 
-This SLOC counter is a simple implementation and may not handle all edge cases. Please report any issues you encounter.
+_made a contribution? add yourself below!
 
-=== 📄 License
+    - *https://github.com/letrad[letrad]* - added; ignore command, dynamic strings.
 
-Provide information about the licensing of the code, if applicable.
+
+=== ⚠️ note
+
+this SLOC counter is a simple implementation and may not handle all edge cases. please report any problems you have as https://github.com/drainpixie/micelia/issues[issues].
+
+
+=== 📄 license
+
+this project is licensed under the gnu lesser general public license v3.0

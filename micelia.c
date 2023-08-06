@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #define MAX_INT_LEN 8
 
@@ -14,6 +13,8 @@
     fprintf(stderr, message);                                                  \
     exit(EXIT_FAILURE);                                                        \
   }
+
+static int max_file_path_len = 0;
 
 typedef struct t_node {
     char *file_path;
@@ -26,19 +27,6 @@ typedef struct t_files_stats {
     int comment_lines;
 } t_files_stats;
 
-// LETRAD ADDITION
-int max_str_len(t_node *files) {
-    int max_str_len = 0;
-    t_node *current = files;
-    while (current != NULL) {
-        int len = strlen(current->file_path);
-        if (len > max_str_len) {
-            max_str_len = len;
-        }
-        current = current->next;
-    }
-    return max_str_len + 4; // Adding 4 for padding
-}
 
 t_node *create_node(const char *file_path) {
   t_node *new_node = (t_node *)malloc(sizeof(t_node));
@@ -60,17 +48,25 @@ t_files_stats *create_stats() {
 }
 
 void insert_node(t_node **head, t_node *new_node) {
-  if (*head == NULL)
-    *head = new_node;
-  else {
-    t_node *current = *head;
-    while (current->next != NULL)
-      current = current->next;
+    int len = strlen(new_node->file_path);
+    if (len > max_file_path_len) {
+        max_file_path_len = len;
+    }
 
-    current->next = new_node;
-  }
+    if (*head == NULL)
+        *head = new_node;
+    else {
+        t_node *current = *head;
+        while (current->next != NULL)
+            current = current->next;
+
+        current->next = new_node;
+    }
 }
 
+int get_max_str_len() {
+    return max_file_path_len + 4; // Adding 4 for padding
+}
 void free_list(t_node *head) {
   while (head != NULL) {
     t_node *temp = head;
@@ -88,14 +84,11 @@ static t_files_stats *stats;
 static t_node *files;
 
 static const char *inline_comments[] = {"//", ";;", "#"};
-// TODO: add a CLI option to ignore folders.
-static const char *ignore_folders[] = {".git", ".vscode", "node_modules"};
+static const char *ignore_folders[] = {".git", ".vscode", "node_modules", ".idea"};
 
-// LETRAD ADDITION
 static const char *ignore_list[1024];
 static int ignore_count = 0;
 
-// LETRAD MODIFIED
 int readdir_recursive(const char *path) {
     DIR *folder;
     struct dirent *entry;
@@ -192,11 +185,9 @@ void count_file(const char *path) {
     else
       blank_lines++;
   }
-
   free(line);
   fclose(file);
-  int str_len = max_str_len(files);
-  printf("%-*.*s | %*d | %*d | %*d\n", str_len, str_len, path,
+  printf("%-*.*s | %*d | %*d | %*d\n", get_max_str_len(), get_max_str_len(), path,
          MAX_INT_LEN, code_lines, MAX_INT_LEN, comment_lines, MAX_INT_LEN,
          blank_lines);
 
@@ -232,8 +223,8 @@ int main(int argc, char *argv[]) {
     int res = readdir_recursive(base_path);
     stats = create_stats();
 
-    int str_len = max_str_len(files);
-    printf("%-*.*s | %*.*s | %*.*s | %*.*s\n", str_len, str_len, "file",
+    // TODO: find a way to DRY this, whilst being generic.
+    printf("%-*.*s | %*.*s | %*.*s | %*.*s\n", get_max_str_len(), get_max_str_len(), "file",
            MAX_INT_LEN, MAX_INT_LEN, "code", MAX_INT_LEN, MAX_INT_LEN, "comment",
            MAX_INT_LEN, MAX_INT_LEN, "blank");
 
@@ -254,7 +245,7 @@ int main(int argc, char *argv[]) {
     } else
         count_file(base_path);
 
-    printf("%-*.*s | %*d | %*d | %*d\n", str_len, str_len, "total",
+    printf("%-*.*s | %*d | %*d | %*d\n", get_max_str_len(), get_max_str_len(), "total",
            MAX_INT_LEN, stats->code_lines, MAX_INT_LEN, stats->comment_lines,
            MAX_INT_LEN, stats->blank_lines);
 
