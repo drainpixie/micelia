@@ -31,17 +31,11 @@ micelia [OPTIONS] PATH
 
 - Count lines of code in a directory, excluding the "test" and "vendor" folders:
 
-  [source,sh]
-  ----
   micelia -i test -i vendor /path/to/directory
-  ----
 
 - Count lines of code in a directory without ignoring any folders:
 
-  [source,sh]
-  ----
   micelia /path/to/directory
-  -----
 
 === ⚠️ Note
 
