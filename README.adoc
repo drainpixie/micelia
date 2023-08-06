@@ -40,7 +40,7 @@ micelia [OPTIONS] PATH
 === ⭐ contributors
 a heartfelt thank you goes out to all those who have contributed to 🍄 micelia. whether you've helped with code, documentation, design, or anything in between, your contributions are valued and appreciated.
 
-_made a contribution? add yourself below!
+_made a contribution_? add yourself below!
 
     - *https://github.com/letrad[letrad]* - added; ignore command, dynamic strings.
 
