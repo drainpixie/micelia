@@ -17,11 +17,13 @@ $(EXEC): $(OBJS)
 %.o: %.c
 	$(CC) $(CLAGS) -c $< -o $@
 
-
 install: $(EXEC)
 	cp $(EXEC) $(INSTALL_PATH)
 
+uninstall:
+	rm $(INSTALL_PATH)/$(EXEC)
+
 clean:
-	rm -f $(EXEC) $(OBJS) $(INSTALL_PATH)/$(EXEC)
+	rm -f $(EXEC) $(OBJS)
 
 

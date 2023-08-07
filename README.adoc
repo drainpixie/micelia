@@ -1,6 +1,6 @@
 == 🍄 micelia
 
-a naive SLOC (source lines of code) counter.
+a naive SLOC (source lines of code) counter
 
 === 📑 instructions
 
@@ -8,12 +8,12 @@ a naive SLOC (source lines of code) counter.
 
 [source,sh]
 ----
-sudo make install
+sudo make install clean
 ----
 ==== uninstallation
 [source,sh]
 ----
-sudo make clean
+sudo make uninstall clean 
 ----
 
 ==== usage
@@ -25,29 +25,32 @@ micelia [OPTIONS] PATH
 
 ===== options
 
-- `-i` or `--ignore`:: ignore specified directories. you can add multiple directories to ignore by using this option multiple times.
+- `-i` or `--ignore` ignores specified directories. + 
+you can add multiple directories to ignore by using this option multiple times.
 
 ===== examples
 
-- count lines of code in a directory, excluding the "test" and "vendor" folders:
+- count lines in a directory, excluding the "test" and "vendor" folders:
 
   micelia -i test -i vendor /path/to/directory
 
-- count lines of code in a directory without ignoring any folders:
+- count lines in a directory without ignoring any folders:
 
   micelia /path/to/directory
 
 === ⭐ contributors
-a heartfelt thank you goes out to all those who have contributed to 🍄 micelia. whether you've helped with code, documentation, design, or anything in between, your contributions are valued and appreciated.
+a heartfelt thank you goes out to all those who have contributed to 🍄 micelia. +
+whether you've helped with code, documentation, design, or anything in between, your contributions are valued and appreciated.
 
 _made a contribution_? add yourself below!
 
-    - *https://github.com/letrad[letrad]* - added; ignore command, dynamic strings.
+    - *https://github.com/letrad[letrad]* for adding the `--ignore` option and dynamic length for strings
 
 
 === ⚠️ note
 
-this SLOC counter is a simple implementation and may not handle all edge cases. please report any problems you have as https://github.com/drainpixie/micelia/issues[issues].
+this SLOC counter is a simple implementation and may not handle all edge cases. +
+please report any problems you have as https://github.com/drainpixie/micelia/issues[issues].
 
 
 === 📄 license
