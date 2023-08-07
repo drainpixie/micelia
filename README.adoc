@@ -46,6 +46,9 @@ _made a contribution_? add yourself below!
 
     - *https://github.com/letrad[letrad]* for adding the `--ignore` option and dynamic length for strings
 
+if you want to contribute, feel free to fork the repository and open a PR. +
+🍄 micelia is formatted with `clang-format`
+
 
 === ⚠️ note
 
