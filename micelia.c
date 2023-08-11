@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#define MAX_INT_LEN 8
 
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
 #define UNRECOVERABLE(message)                                                 \
@@ -14,7 +13,22 @@
     exit(EXIT_FAILURE);                                                        \
   }
 
+static char *base_path;
+
 static int max_file_path_len = 0;
+// making max_int_len dynamic isn't impossible but,
+// realistically a waste of time and the best solution
+// i can think of is fairly ugly :/
+static int max_int_len = 9;
+
+static const char *inline_comments[] = {"//", ";;", "#"};
+static const char *ignore_folders[] = {".git", ".vscode", "node_modules",
+                                       ".idea"};
+
+// TODO: make it dynamic
+//			 we can probably just reuse t_node
+static const char *ignore_list[1024];
+static int ignore_count = 0;
 
 typedef struct t_node {
   char *file_path;
@@ -26,6 +40,9 @@ typedef struct t_files_stats {
   int blank_lines;
   int comment_lines;
 } t_files_stats;
+
+static t_files_stats *stats;
+static t_node *files;
 
 t_node *create_node(const char *file_path) {
   t_node *new_node = (t_node *)malloc(sizeof(t_node));
@@ -64,8 +81,9 @@ void insert_node(t_node **head, t_node *new_node) {
 }
 
 int get_max_str_len() {
-  return max_file_path_len + 4; // Adding 4 for padding
+  return max_file_path_len + 4; // +4 for padding
 }
+
 void free_list(t_node *head) {
   while (head != NULL) {
     t_node *temp = head;
@@ -76,18 +94,6 @@ void free_list(t_node *head) {
 }
 
 void free_stats(t_files_stats *stats) { free(stats); }
-
-static char *base_path;
-
-static t_files_stats *stats;
-static t_node *files;
-
-static const char *inline_comments[] = {"//", ";;", "#"};
-static const char *ignore_folders[] = {".git", ".vscode", "node_modules",
-                                       ".idea"};
-
-static const char *ignore_list[1024];
-static int ignore_count = 0;
 
 int readdir_recursive(const char *path) {
   DIR *folder;
@@ -109,9 +115,8 @@ int readdir_recursive(const char *path) {
         should_ignore = true;
         break;
       }
-    }
-
-    // Check against user-added ignore list
+    
+    // check against user-added ignore list
     for (int i = 0; i < ignore_count; i++) {
       if (STREQ(entry->d_name, ignore_list[i])) {
         should_ignore = true;
@@ -185,10 +190,12 @@ void count_file(const char *path) {
     else
       blank_lines++;
   }
+
   free(line);
   fclose(file);
+
   printf("%-*.*s | %*d | %*d | %*d\n", get_max_str_len(), get_max_str_len(),
-         path, MAX_INT_LEN, code_lines, MAX_INT_LEN, comment_lines, MAX_INT_LEN,
+         path, max_int_len, code_lines, max_int_len, comment_lines, max_int_len,
          blank_lines);
 
   stats->code_lines += code_lines;
@@ -225,8 +232,8 @@ int main(int argc, char *argv[]) {
 
   // TODO: find a way to DRY this, whilst being generic.
   printf("%-*.*s | %*.*s | %*.*s | %*.*s\n", get_max_str_len(),
-         get_max_str_len(), "file", MAX_INT_LEN, MAX_INT_LEN, "code",
-         MAX_INT_LEN, MAX_INT_LEN, "comment", MAX_INT_LEN, MAX_INT_LEN,
+         get_max_str_len(), "file", max_int_len, max_int_len, "code",
+         max_int_len, max_int_len, "comment", max_int_len, max_int_len,
          "blank");
 
   if (res == EXIT_SUCCESS) {
@@ -247,8 +254,8 @@ int main(int argc, char *argv[]) {
     count_file(base_path);
 
   printf("%-*.*s | %*d | %*d | %*d\n", get_max_str_len(), get_max_str_len(),
-         "total", MAX_INT_LEN, stats->code_lines, MAX_INT_LEN,
-         stats->comment_lines, MAX_INT_LEN, stats->blank_lines);
+         "total", max_int_len, stats->code_lines, max_int_len,
+         stats->comment_lines, max_int_len, stats->blank_lines);
 
   free_list(files);
   free_stats(stats);
