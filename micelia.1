@@ -1,32 +1,30 @@
-.TH MICELIA 1 "August 2023" "Mycelia CLI Manual"
+.TH MICELIA 1 "August 2023"
 .SH NAME
-micelia \- Manage files and directories with ease
+micelia \- a naive SLOC counter
 .SH SYNOPSIS
 .B micelia
 [\fIOPTIONS\fR] \fIPATH\fR
 .SH DESCRIPTION
-\fImicelia\fR is a command-line tool that helps you manage files and directories efficiently. It allows you to perform various operations on the specified path.
+\fImicelia\fR is a simple command-line tool designed to count the number of source lines of code in a given \fIPATH\fR.
 .SH OPTIONS
 .TP
-.BR -i ", " --ignore " \fIIGNORE_PATH\fR"
-Ignore the specified path during operations.
-.TP
-.BR -h ", " --help"
-Display this help message.
+.B \-i, \-\-ignore \fIIGNORE_PATH\fR
+.RS 10
+ignore a specific \fIIGNORE_PATH\fR during the SLOC count.
+.RE
+.B \-h, \-\-help
+.RS 10
+display a help message describing the usage and available options of the \fImicelia\fR command.
 .SH EXAMPLES
-\fBmicelia\fR -i /path/to/ignore /path/to/manage
-.PP
-This example will manage the path \fI/path/to/manage\fR while ignoring the path \fI/path/to/ignore\fR.
-.SH SEE ALSO
-Online documentation at https://yourwebsite.com/micelia
-.SH BUGS
-Report bugs to the issue tracker at https://github.com/yourusername/micelia/issues
+.B micelia .
+.RS 10
+count SLOC in current directory.
+.RE
+.B micelia \-i tests . 
+.RS 10
+count SLOC while ignoring the "tests" directory.
 .SH AUTHOR
-Written by Your Name.
-.SH COPYRIGHT
-Copyright \(co 2023 Your Name.
-.SH LICENSE
-This program is distributed under the terms of the MIT License.
-.SH DISCLAIMER
-This manual page documents the \fImicelia\fR command. It may not contain comprehensive information about all command options and functionality.
+written by \fIdrainpixie\fR.
+.SH CAVEATS
+this tool employs a naive approach to counting source lines of code and may not accurately reflect the complexity or quality of a codebase. Use it as a basic metric for code size assessment.
 
