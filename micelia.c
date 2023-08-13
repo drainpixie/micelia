@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <dirent.h>
+#include <getopt.h>
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -205,18 +206,36 @@ void count_file(const char *path) {
   stats->comment_lines += comment_lines;
 }
 
+void display_help() {
+  printf("usage: micelia [OPTIONS] PATH\n");
+  printf("options:\n");
+  printf("  -i, --ignore IGNORE_PATH   ignore a specific path\n");
+  printf("  -h, --help                 display this help message\n");
+  exit(EXIT_SUCCESS);
+}
+
 int main(int argc, char *argv[]) {
   int opt;
-  while ((opt = getopt(argc, argv, "i:")) != -1) {
+  int option_index = 0;
+
+  static struct option long_options[] = {{"ignore", required_argument, 0, 'i'},
+                                         {"help", no_argument, 0, 'h'},
+                                         {0, 0, 0, 0}};
+
+  while ((opt = getopt_long(argc, argv, "i:h", long_options, &option_index)) !=
+         -1) {
     switch (opt) {
     case 'i':
       if (ignore_count >= sizeof(ignore_list) / sizeof(ignore_list[0])) {
-        UNRECOVERABLE("Too many ignore options.\n");
+        UNRECOVERABLE("too many ignore options.\n");
       }
       ignore_list[ignore_count++] = optarg;
       break;
+    case 'h':
+      display_help();
+      break;
     default:
-      UNRECOVERABLE("Invalid option.\n");
+      UNRECOVERABLE("invalid option.\n");
     }
   }
 
