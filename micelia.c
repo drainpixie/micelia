@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <dirent.h>
+#include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,8 +26,7 @@ static const char *inline_comments[] = {"//", ";;", "#"};
 static const char *ignore_folders[] = {".git", ".vscode", "node_modules",
                                        ".idea"};
 
-// TODO: make it dynamic
-//			 we can probably just reuse t_node
+// TODO: make it dynamic we can probably just reuse t_node
 static const char *ignore_list[1024];
 static int ignore_count = 0;
 
@@ -115,7 +115,8 @@ int readdir_recursive(const char *path) {
         should_ignore = true;
         break;
       }
-    
+    }
+
     // check against user-added ignore list
     for (int i = 0; i < ignore_count; i++) {
       if (STREQ(entry->d_name, ignore_list[i])) {
@@ -135,8 +136,9 @@ int readdir_recursive(const char *path) {
 
       insert_node(&files, create_node(relative_path));
       free(relative_path);
-    } else if (entry->d_type == DT_DIR)
+    } else if (entry->d_type == DT_DIR) {
       readdir_recursive(full_path);
+    }
   }
 
   closedir(folder);
