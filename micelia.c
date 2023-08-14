@@ -4,8 +4,8 @@
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
@@ -24,12 +24,6 @@ static int max_file_path_len = 0;
 static int max_int_len = 9;
 
 static const char *inline_comments[] = {"//", ";;", "#"};
-static const char *ignore_folders[] = {".git", ".vscode", "node_modules",
-                                       ".idea"};
-
-// TODO: make it dynamic we can probably just reuse t_node
-static const char *ignore_list[1024];
-static int ignore_count = 0;
 
 typedef struct t_node {
   char *file_path;
@@ -43,6 +37,8 @@ typedef struct t_files_stats {
 } t_files_stats;
 
 static t_files_stats *stats;
+
+static t_node *ignore_list;
 static t_node *files;
 
 t_node *create_node(const char *file_path) {
@@ -81,6 +77,19 @@ void insert_node(t_node **head, t_node *new_node) {
   }
 }
 
+bool includes_node(t_node *head, char *target) {
+	t_node *current = head;
+
+	while (current != NULL) {
+		if (STREQ(current->file_path, target))
+			return true;
+
+		current = current->next;
+	}
+
+	return false;
+}
+
 int get_max_str_len() {
   return max_file_path_len + 4; // +4 for padding
 }
@@ -106,28 +115,8 @@ int readdir_recursive(const char *path) {
     return EXIT_FAILURE;
 
   while ((entry = readdir(folder)) != NULL) {
-    if (STREQ(entry->d_name, ".") || STREQ(entry->d_name, ".."))
-      continue;
-
-    bool should_ignore = false;
-    for (size_t i = 0; i < sizeof(ignore_folders) / sizeof(ignore_folders[0]);
-         i++) {
-      if (STREQ(entry->d_name, ignore_folders[i])) {
-        should_ignore = true;
-        break;
-      }
-    }
-
-    // check against user-added ignore list
-    for (int i = 0; i < ignore_count; i++) {
-      if (STREQ(entry->d_name, ignore_list[i])) {
-        should_ignore = true;
-        break;
-      }
-    }
-
-    if (should_ignore)
-      continue;
+		if (includes_node(ignore_list, entry->d_name))
+			continue;
 
     snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
 
@@ -215,6 +204,13 @@ void display_help() {
 }
 
 int main(int argc, char *argv[]) {
+  insert_node(&ignore_list, create_node("."));
+  insert_node(&ignore_list, create_node(".."));
+  insert_node(&ignore_list, create_node(".git"));
+  insert_node(&ignore_list, create_node(".idea"));
+  insert_node(&ignore_list, create_node(".vscode"));
+  insert_node(&ignore_list, create_node("node_modules"));
+
   int opt;
   int option_index = 0;
 
@@ -226,10 +222,7 @@ int main(int argc, char *argv[]) {
          -1) {
     switch (opt) {
     case 'i':
-      if (ignore_count >= sizeof(ignore_list) / sizeof(ignore_list[0])) {
-        UNRECOVERABLE("too many ignore options.\n");
-      }
-      ignore_list[ignore_count++] = optarg;
+      insert_node(&ignore_list, create_node(optarg));
       break;
     case 'h':
       display_help();
@@ -279,6 +272,7 @@ int main(int argc, char *argv[]) {
          stats->comment_lines, max_int_len, stats->blank_lines);
 
   free_list(files);
+  free_list(ignore_list);
   free_stats(stats);
 
   return EXIT_SUCCESS;
