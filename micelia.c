@@ -23,8 +23,6 @@ static int max_file_path_len = 0;
 // i can think of is fairly ugly :/
 static int max_int_len = 9;
 
-static const char *inline_comments[] = {"//", ";;", "#"};
-
 typedef struct t_node {
   char *file_path;
   struct t_node *next;
@@ -33,7 +31,6 @@ typedef struct t_node {
 typedef struct t_files_stats {
   int code_lines;
   int blank_lines;
-  int comment_lines;
 } t_files_stats;
 
 static t_files_stats *stats;
@@ -55,7 +52,6 @@ t_files_stats *create_stats() {
 
   stats->code_lines = 0;
   stats->blank_lines = 0;
-  stats->comment_lines = 0;
 
   return stats;
 }
@@ -135,21 +131,6 @@ int readdir_recursive(const char *path) {
   return EXIT_SUCCESS;
 }
 
-// TODO: implement some sort of parser for comments,
-//       or look at how other people do it.
-bool is_comment(const char *line) {
-  for (size_t i = 0; i < sizeof(inline_comments) / sizeof(inline_comments[0]);
-       i++) {
-    const char *comment_symbol = inline_comments[i];
-    size_t comment_length = strlen(comment_symbol);
-
-    if (strncmp(line, comment_symbol, comment_length) == 0)
-      return true;
-  }
-
-  return false;
-}
-
 bool is_empty(const char *line) {
   while (*line) {
     if (!isspace(*line))
@@ -172,12 +153,9 @@ void count_file(const char *path) {
 
   int code_lines = 0;
   int blank_lines = 0;
-  int comment_lines = 0;
 
   while ((read = getline(&line, &len, file)) != -1) {
-    if (is_comment(line))
-      comment_lines++;
-    else if (!is_empty(line))
+    if (!is_empty(line))
       code_lines++;
     else
       blank_lines++;
@@ -186,13 +164,12 @@ void count_file(const char *path) {
   free(line);
   fclose(file);
 
-  printf("%-*.*s | %*d | %*d | %*d\n", get_max_str_len(), get_max_str_len(),
-         path, max_int_len, code_lines, max_int_len, comment_lines, max_int_len,
+  printf("%-*.*s | %*d | %*d\n", get_max_str_len(), get_max_str_len(),
+         path, max_int_len, code_lines, max_int_len,
          blank_lines);
 
   stats->code_lines += code_lines;
   stats->blank_lines += blank_lines;
-  stats->comment_lines += comment_lines;
 }
 
 void display_help() {
@@ -245,11 +222,10 @@ int main(int argc, char *argv[]) {
   stats = create_stats();
 
   // it's kinda ugly and repetitive but, we only do this a few
-	// times in the code-base, and i couldn't find a good way
-	// to make it generic enough.
-  printf("%-*.*s | %*.*s | %*.*s | %*.*s\n", get_max_str_len(),
-         get_max_str_len(), "file", max_int_len, max_int_len, "code",
-         max_int_len, max_int_len, "comment", max_int_len, max_int_len,
+  // times in the code-base, and i couldn't find a good way
+  // to make it generic enough.
+  printf("%-*.*s | %*.*s | %*.*s\n", get_max_str_len(), get_max_str_len(),
+         "file", max_int_len, max_int_len, "code", max_int_len, max_int_len,
          "blank");
 
   if (res == EXIT_SUCCESS) {
@@ -269,9 +245,9 @@ int main(int argc, char *argv[]) {
   } else
     count_file(base_path);
 
-  printf("%-*.*s | %*d | %*d | %*d\n", get_max_str_len(), get_max_str_len(),
+  printf("%-*.*s | %*d | %*d\n", get_max_str_len(), get_max_str_len(),
          "total", max_int_len, stats->code_lines, max_int_len,
-         stats->comment_lines, max_int_len, stats->blank_lines);
+         stats->blank_lines);
 
   free_list(files);
   free_list(ignore_list);

@@ -49,13 +49,6 @@ _made a contribution_? add yourself below!
 if you want to contribute, feel free to fork the repository and open a PR. +
 🍄 micelia is formatted with `clang-format`
 
-
-=== ⚠️ note
-
-this SLOC counter is a simple implementation and may not handle all edge cases. +
-please report any problems you have as https://github.com/drainpixie/micelia/issues[issues].
-
-
 === 📄 license
 
 this project is licensed under the gnu lesser general public license v3.0
