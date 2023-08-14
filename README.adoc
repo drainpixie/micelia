@@ -16,8 +16,8 @@ man micelia
 
 === ⭐ contributors
 huge thanks to all micelia's contributors. +
-
 _made a contribution_? add yourself below!
+
     - *https://github.com/letrad[letrad]* for adding the `--ignore` option and dynamic length for strings
 
 === 📄 license
