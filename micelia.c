@@ -4,8 +4,8 @@
 #include <linux/limits.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
@@ -78,16 +78,16 @@ void insert_node(t_node **head, t_node *new_node) {
 }
 
 bool includes_node(t_node *head, char *target) {
-	t_node *current = head;
+  t_node *current = head;
 
-	while (current != NULL) {
-		if (STREQ(current->file_path, target))
-			return true;
+  while (current != NULL) {
+    if (STREQ(current->file_path, target))
+      return true;
 
-		current = current->next;
-	}
+    current = current->next;
+  }
 
-	return false;
+  return false;
 }
 
 int get_max_str_len() {
@@ -115,8 +115,8 @@ int readdir_recursive(const char *path) {
     return EXIT_FAILURE;
 
   while ((entry = readdir(folder)) != NULL) {
-		if (includes_node(ignore_list, entry->d_name))
-			continue;
+    if (includes_node(ignore_list, entry->d_name))
+      continue;
 
     snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
 
@@ -244,7 +244,9 @@ int main(int argc, char *argv[]) {
   int res = readdir_recursive(base_path);
   stats = create_stats();
 
-  // TODO: find a way to DRY this, whilst being generic.
+  // it's kinda ugly and repetitive but, we only do this a few
+	// times in the code-base, and i couldn't find a good way
+	// to make it generic enough.
   printf("%-*.*s | %*.*s | %*.*s | %*.*s\n", get_max_str_len(),
          get_max_str_len(), "file", max_int_len, max_int_len, "code",
          max_int_len, max_int_len, "comment", max_int_len, max_int_len,
