@@ -15,15 +15,9 @@ man micelia
 ----
 
 === ⭐ contributors
-a heartfelt thank you goes out to all those who have contributed to 🍄 micelia. +
-whether you've helped with code, documentation, design, or anything in between, your contributions are valued and appreciated.
-
+huge thanks to all micelia's contributors. +
 _made a contribution_? add yourself below!
-
     - *https://github.com/letrad[letrad]* for adding the `--ignore` option and dynamic length for strings
-
-if you want to contribute, feel free to fork the repository and open a PR. +
-🍄 micelia is formatted with `clang-format`
 
 === 📄 license
 
