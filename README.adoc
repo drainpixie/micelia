@@ -4,39 +4,15 @@ a naive SLOC (source lines of code) counter
 
 === 📑 instructions
 
-==== installation
-
 [source,sh]
 ----
 sudo make install clean
-----
-==== uninstallation
-[source,sh]
-----
 sudo make uninstall clean 
 ----
-
-==== usage
-
 [source,sh]
 ----
-micelia [OPTIONS] PATH
+man micelia
 ----
-
-===== options
-
-- `-i` or `--ignore` ignores specified directories. + 
-you can add multiple directories to ignore by using this option multiple times.
-
-===== examples
-
-- count lines in a directory, excluding the "test" and "vendor" folders:
-
-  micelia -i test -i vendor /path/to/directory
-
-- count lines in a directory without ignoring any folders:
-
-  micelia /path/to/directory
 
 === ⭐ contributors
 a heartfelt thank you goes out to all those who have contributed to 🍄 micelia. +
